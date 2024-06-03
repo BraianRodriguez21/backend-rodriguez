@@ -34,13 +34,12 @@ app.use((req, res, next) => {
     res.locals.user = req.user;
     next();
 });
-mongoose.connect('', {
+mongoose.connect('mongodb://localhost:27017', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => console.log('MongoDB conectado'))
   .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-// Rutas
 app.use('/', viewRouter);
 app.use('/api/products', productRouter);
 app.use('/api/carts', cartRouter);
