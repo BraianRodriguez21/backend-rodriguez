@@ -4,6 +4,7 @@ import { User } from '../models/userModel.js';
 
 const router = Router();
 
+// Ruta de registro
 router.post('/register', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -19,17 +20,20 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Ruta de login
 router.post('/login', passport.authenticate('local', {
     successRedirect: '/products',
     failureRedirect: '/login',
     failureFlash: true
 }));
 
+// Ruta de logout
 router.get('/logout', (req, res) => {
     req.logout();
     res.redirect('/login');
 });
 
+// Ruta de autenticación con GitHub
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/callback', passport.authenticate('github', {

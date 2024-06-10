@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import { User } from '../servicios/userManagers';
+import { User } from '../models/userModel.js';
 
 export const passportConfig = (app) => {
     passport.use(new LocalStrategy({
