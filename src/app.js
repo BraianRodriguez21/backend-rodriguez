@@ -1,55 +1,65 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import session from 'express-session';
+import passport from 'passport';
+import cookieParser from 'cookie-parser';
+import { config } from './config/config.js';
 import { viewRouter } from './routes/viewRouter.js';
-import { productRouter } from './routes/productRouter.js';
-import { cartRouter } from './routes/cartRouter.js';
-import { authRouter } from './routes/authRouter.js';
+import productRouter from './routes/productRouter.js';
+import authRouter from './routes/authRouter.js';
 import { handlebarsConf } from './config/handlebarsConfig.js';
 import { socketConf } from './config/socketConfig.js';
-import { passportConfig } from './config/passportConfig.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import './config/passportConfig.js'; // Importa la configuración de Passport
+import logger from './config/loggerConfig.js';
+
+dotenv.config();
 
 const app = express();
-
-// Middleware para parsear JSON y formularios
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-
-// Configuración de la sesión
+app.use(cookieParser());
 app.use(session({
-    secret: 'your_secret_key',
+    secret: config.sessionSecret,
     resave: false,
     saveUninitialized: false
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Configuración de Passport.js
-passportConfig(app);
+const httpServer = app.listen(config.port || 8080, () => logger.info(`Servidor en el puerto ${config.port || 8080}`));
 
-// Configuración de Handlebars
 handlebarsConf(app);
-
-// Configuración de socket.io
-const httpServer = app.listen(8080, () => console.log('Servidor en el puerto 8080'));
 const io = socketConf(httpServer);
 
 app.use((req, res, next) => {
     req.io = io;
-    res.locals.user = req.user;
     next();
 });
 
-// Conexión a MongoDB
-mongoose.connect('', {
+mongoose.connect(config.mongoUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(() => console.log('MongoDB conectado'))
-  .catch(err => console.error('Error al conectar a MongoDB:', err));
+}).then(() => logger.info('Mongo connected'))
+.catch(err => logger.error('Mongo connection error:', err));
 
-// Rutas
 app.use('/', viewRouter);
 app.use('/api/products', productRouter);
-app.use('/api/carts', cartRouter);
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
+
+
+app.use(errorHandler);
+
+app.get('/loggerTest', (req, res) => {
+    logger.debug('Debug log');
+    logger.http('HTTP log');
+    logger.info('Info log');
+    logger.warn('Warning log');
+    logger.error('Error log');
+    logger.fatal('Fatal log');
+    res.send('Logs have been generated');
+});
 
 export { app };
