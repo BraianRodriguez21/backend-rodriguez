@@ -1,4 +1,4 @@
-import { findAllProducts, findProductById, createProduct, updateProductById, deleteProductById } from '../dao/productDao.js';
+import { findAllProducts, findProductById, createProduct as daoCreateProduct, updateProductById, deleteProductById } from '../dao/productDao.js';
 import { ErrorDictionary, CustomError } from '../utils/errorDictionary.js';
 import logger from '../config/loggerConfig.js';
 
@@ -33,7 +33,7 @@ export const getProducts = async (req, res, next) => {
 
 export const createProduct = async (req, res, next) => {
     try {
-        const product = await createProduct(req.body);
+        const product = await daoCreateProduct(req.body);
         res.json({ success: true, product });
     } catch (error) {
         logger.error(`Error creating product: ${error.message}`);
@@ -66,4 +66,3 @@ export const deleteProductById = async (req, res, next) => {
         next(error);
     }
 };
-
